@@ -7,9 +7,9 @@ from ..compat import (
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
 )
+from ..networking import HEADRequest
 from ..utils import (
     ExtractorError,
-    HEADRequest,
     float_or_none,
     int_or_none,
     qualities,
@@ -238,10 +238,8 @@ class OdnoklassnikiIE(InfoExtractor):
     def _clear_cookies(self, cdn_url):
         # Direct http downloads will fail if CDN cookies are set
         # so we need to reset them after each format extraction
-        if self._get_cookies('https://notarealsubdomain.mycdn.me/'):
-            self.cookiejar.clear(domain='.mycdn.me')
-        if self._get_cookies(cdn_url):
-            self.cookiejar.clear(domain=urllib.parse.urlparse(cdn_url).hostname)
+        self.cookiejar.clear(domain='.mycdn.me')
+        self.cookiejar.clear(domain=urllib.parse.urlparse(cdn_url).hostname)
 
     @classmethod
     def _extract_embed_urls(cls, url, webpage):
@@ -450,7 +448,7 @@ class OdnoklassnikiIE(InfoExtractor):
         json_data = self._parse_json(unescapeHTML(json_data), video_id) or {}
 
         redirect_url = self._request_webpage(HEADRequest(
-            json_data['videoSrc']), video_id, 'Requesting download URL').geturl()
+            json_data['videoSrc']), video_id, 'Requesting download URL').url
         self._clear_cookies(redirect_url)
 
         return {
